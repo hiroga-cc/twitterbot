@@ -1,7 +1,6 @@
-## Reweet Bot #MeetMaye 
+## Reweet Bot
 
-This bot retweets the latest tweet from @love_prototyper.
- 
+This bot retweets the latest tweet
 
 ### Connecting to Twitter 
 
