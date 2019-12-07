@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description:  >
+  Commands:
+    - aws cloudformation validate-template --template-body file://template.yml
+Parameters:
+  Env:
+    Type: String
+    Default: dev
+Globals: # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#globals-section
+  Function:
+    Runtime: nodejs10.x
+    Timeout: 60
+Resources:
+  AutoRetweet:
+    Type: AWS::Serverless::Function
+    Name: !Sub ${Env}-AutoRetweet
+    Properties:
+      Handler: retweetbot.retweetLatest
+      Role: !GetAtt AutoRetweetFunctionIamRole.Arn
+      CodeUri: ./bot
+  PermissionToInvokeAutoRetweet:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AutoRetweet
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+  AutoRetweetRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "execute every 10:00 AM @ weekday"
+      Name: !Sub ${Env}-AutoRetweetRule
+      ScheduleExpression: rate(3 minutes)
+      # This is UTC!
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt AutoRetweet.Arn
+          Id: AutoRetweet
+  AutoRetweetLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${Env}-AutoRetweet
+      RetentionInDays: 731
+  AutoRetweetFunctionIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        -
+          PolicyName: "auto_retweet"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: 
+                - "cloudwatch:*"
+                - "ssm:*"
+                Resource: "*"

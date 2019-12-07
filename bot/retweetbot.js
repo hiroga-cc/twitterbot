@@ -5,7 +5,8 @@ var Twit = require('twit');
 var T = new Twit(require('./config.js'));
 
 // This is the URL of a search for the latest tweets on the '@love_prototyper' hashtag.
-var mediaArtsSearch = { q: "from:love_prototyper", count: 10, result_type: "recent" };
+const query = process.env.query ? process.env.query : "from:love_prototyper"
+const mediaArtsSearch = { q: query, count: 10, result_type: "recent" };
 
 // This function finds the latest tweet with the #mediaarts hashtag, and retweets it.
 function retweetLatest() {
@@ -35,9 +36,3 @@ function retweetLatest() {
         }
     });
 }
-
-// Try to retweet something as soon as we run the program...
-retweetLatest();
-// ...and then every hour/half after that. Time here is in milliseconds, so
-// 1000 ms = 1 second, 1 sec * 60 = 1 min, 1 min * 60 = 1 hour --> 1000 * 60 * 60
-setInterval(retweetLatest, 1000 * 60 * 3);

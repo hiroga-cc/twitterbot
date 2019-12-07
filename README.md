@@ -1,18 +1,7 @@
 ## Reweet Bot #MeetMaye 
 
-This bot retweets the latest tweet using the "#MeetMaye" hashtag. It attempts to retweet once per hour.
-
-_Note: you must be comfortable using your computer's command line interface to use this bot. If you've never used it, there are tutorials for [Mac OSX](http://blog.teamtreehouse.com/introduction-to-the-mac-os-x-command-line) and [Windows](http://www.bleepingcomputer.com/tutorials/windows-command-prompt-introduction/)._ 
+This bot retweets the latest tweet from @love_prototyper.
  
-### Installation 
- 
-If you don't already have have them, please install [Node.js](http://nodejs.org/). This will install two programs: `node`, which runs JavaScript from the command line, and `npm`, which helps you install software that Node.js can run. 
- 
-Make an empty project directory somewhere convenient for you, [download this file](https://github.com/mayeedwin/twitterbot//archive/master.zip), and unzip the contents to your project directory. Go to your project directory in the command line. There should be four files there: `.gitignore`, `README.md`, `bot.js` and `config.js`. In that directory type: 
- 
-`npm install twit` 
-
-This installs some code to the `npm_modules` subdirectory, which you don't need to worry about. (It's Twit, the library that lets us talk to Twitter.) 
 
 ### Connecting to Twitter 
 
@@ -28,32 +17,25 @@ Next you'll see a screen with a "Details" tab. Click on the "Settings" tab and u
 
 Then go to the Keys and Access Tokens tab, and at the bottom click "create my access token". Nothing might happen immediately. Wait a minute and reload the page. then there should be "access token" and "access token secret", which are both long strings of letters and numbers. 
  
-Now use a text editor to open up the "config.js" file. It should look like this: 
-\
- 
-```javascript 
- 
-module.exports = { 
- 
-consumer_key:         'key', 
-
-consumer_secret:      'key', 
-
-access_token:         'key', 
-
-access_token_secret:  'key' 
- 
-} 
- 
+Now use a text editor to open up the "./bot/.env" file.
 ``` 
 
 In between those quotes, instead of `'key'`, paste the appropriate info from the Details page. This is essentially the login information for the app. 
 
-Now type the following in the command line in your project directory: 
- 
-`node retweetbot.js` 
- 
-Hopefully at this point you see a message like "Success! Check your bot, it should have retweeted something." Check the Twitter account for your bot, and it should have retweeted a tweet with the #MeetMaye hashtag. 
+## How to deploy
+
+```
+$(cd bot && npm i)
+export BUILD_OUTPUT_BUCKET=${BUILD_OUTPUT_BUCKET}
+aws cloudformation package --template-file cfn.yml \
+    --s3-bucket ${BUILD_OUTPUT_BUCKET} \
+    --s3-prefix "twitterbot/artifacts" \
+    --output-template-file cfn.out.yml
+aws cloudformation deploy --template-file ./cfn.out.yml \
+        --stack-name auto-retweet \
+        --capabilities CAPABILITY_IAM \
+        --region ${REGION}
+```
 
 ### License
 
