@@ -1,38 +1,36 @@
 // Our Twitter library
-var Twit = require('twit');
+const Twit = require('twit');
 
 // We need to include our configuration file
-var T = new Twit(require('./config.js'));
+const T = new Twit(require('./config.js'));
 
-// This is the URL of a search for the latest tweets on the '@love_prototyper' hashtag.
-const query = process.env.query ? process.env.query : "from:love_prototyper"
-const mediaArtsSearch = { q: query, count: 10, result_type: "recent" };
+const promisify = require('util').promisify
+
+const RETWEETED = 'You have already retweeted this Tweet.'
+
+const search = async (query) => {
+    const result = await promisify(T.get)('search/tweets', query).catch(error => {
+        console.log('There was an error with your hashtag search:', error);
+    })
+    return result.statuses
+}
+
+const retweet = async (tweet_id) => {
+    return await promisify(T.post)('statuses/retweet/' + tweet_id, {}).catch(error => {
+        if (error.message == RETWEETED) {
+            console.log(RETWEETED)
+        } else {
+            console.log('There was an error with Twitter:', error);
+        }
+    })
+}
 
 // This function finds the latest tweet with the #mediaarts hashtag, and retweets it.
-exports.constretweetLatest = (event, context, callback) => {
-    T.get('search/tweets', mediaArtsSearch, function (error, data) {
-        // log out any errors and responses
-        console.log({ error: error, data: data });
-        // If our search request to the server had no errors...
-        if (!error) {
-            console.log(data.statuses)
-            // ...then we grab the ID of the tweet we want to retweet...
-            var retweetId = data.statuses[0].id_str;
-            // ...and then we tell Twitter we want to retweet it!
-            T.post('statuses/retweet/' + retweetId, {}, function (error, response) {
-                console.log({ error, response })
-                if (response) {
-                    console.log('Success! Check your bot, it should have retweeted something.')
-                }
-                // If there was an error with our Twitter call, we print it out here.
-                if (error) {
-                    console.log('There was an error with Twitter:', error);
-                }
-            })
-        }
-        // However, if our original search request had an error, we want to print it out here.
-        else {
-            console.log('There was an error with your hashtag search:', error);
-        }
-    });
+exports.retweetLatest = (event, context, callback) => {
+    const query = { q: process.env.query, count: 10, result_type: "recent" };
+    const statuses = search(query)
+    statuses.forEach(status => {
+        const tweet_id = status.id_str
+        retweet(tweet_id)
+    })
 }
