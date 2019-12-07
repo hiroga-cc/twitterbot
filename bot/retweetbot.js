@@ -9,7 +9,7 @@ const query = process.env.query ? process.env.query : "from:love_prototyper"
 const mediaArtsSearch = { q: query, count: 10, result_type: "recent" };
 
 // This function finds the latest tweet with the #mediaarts hashtag, and retweets it.
-function retweetLatest() {
+exports.constretweetLatest = (event, context, callback) => {
     T.get('search/tweets', mediaArtsSearch, function (error, data) {
         // log out any errors and responses
         console.log({ error: error, data: data });
